@@ -20,17 +20,17 @@ eventNames = [:triggerFiltration, :triggerVacuumTransport]
 
 synthesisFields = [:massFlowOut, :massHoldUp]
 synthesisConst = Dict([
-    (:massFlowOutMin, 2 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
-    (:massFlowOutMax, 33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
+    (:massFlowOutMin, 3.33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
+    (:massFlowOutMax, 8.33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
     (:startUpTime, 1),
-    (:shutdownTime, Int(ceil(10 / tD_minutes))),
+    (:shutdownTime, 2),
 ])
 
 # massFlowIntern - API containing material
 crystFields = [:massFlowIntern, :massFlowInternPolymer, :massHoldUp]
 crystConst = Dict([
     (:massFlowInternMin, 2.49*tD_minutes), # 0.3 ml/min -> 1,5 ml / n
-    (:massFlowInternMax, 3*tD_minutes), # 26.56*tD_minutes), # 26.56 ml/min -> 132 ml / n
+    (:massFlowInternMax, 2.5*tD_minutes), # 26.56*tD_minutes), # 26.56 ml/min -> 132 ml / n
     (:massFlowInternPolymerMin, 0.38*tD_minutes), # TODO not used at the moment
     (:massFlowInternPolymerMax, 44.29*tD_minutes), # TODO not used at the moment
     (:massFlowInternTarget, 2.5*tD_minutes), # 2,5 ml/min
@@ -65,8 +65,8 @@ vacuumTransportConst = Dict([
 
 dcLineFields = [:massHoldUpIn, :massFlowAPI, :massFlowPolymer, :massFlowIntern, :massHoldUp]
 dcLineConst = Dict([
-    (:startUpTime, Int(ceil(5 / tD_minutes))),
-    (:shutdownTime, Int(ceil(5 / tD_minutes))),
+    (:startUpTime, 0),
+    (:shutdownTime, 0),
     (:massFlowAPIMin, 0.6*tD_hours*1000), # 0.6 kg/h
     (:massFlowAPIMax, 1.4*tD_hours*1000), # 1.4 kg/h
     (:massFlowPolymerMin, 2.4*tD_hours*1000), # 2.4 kg/h
@@ -77,8 +77,8 @@ dcLineConst = Dict([
 
 tabletPressFields = [:massFlowIntern, :massHoldUp]
 tabletPressConst = Dict([
-    (:startUpTime, Int(ceil(5 / tD_minutes))),
-    (:shutdownTime, Int(ceil(10 / tD_minutes))),
+    (:startUpTime, 0),
+    (:shutdownTime, 0),
     (:massFlowInternMin, 3*tD_hours*1000), # 3 kg/h related to DC Line
     (:massFlowInternMax, 7*tD_hours*1000), # 7 kg/h related to DC Line
     (:targetMassHoldUp, 1.8*1000), # 1.8 kg Target to keep the hopper level constant --> related to dcLine[massHoldUp]
@@ -462,5 +462,3 @@ CSV.write("output.csv", Table(
     tabletPressMassFlowIntern = value.(tabletPress[:massFlowIntern, :]),
     tabletPressMassHoldUp = value.(tabletPress[:massHoldUp, :]),
 ))
-
-plot(plotOperationSynthesis, plotOperationCryst, plotEvents, plotOperationHME, plotOperationDCLine, plotOperationTabletPress, layout=(6, 1), size=(800, 1200))
