@@ -9,7 +9,7 @@ include("../00_Common/common.jl")
 tD_minutes = 5;  # in min / time instance
 tD_seconds = 60*tD_minutes; # in s / time instance
 tD_hours = tD_minutes / 60;  # in h / time instance
-N = Int(6*60 / tD_minutes); # 6 hours = 6*60 min / min / time instace = number of time instances
+N = Int(3*60 / tD_minutes); # 6 hours = 6*60 min / min / time instace = number of time instances
 
 
 # -------------------------------------------------------------------
@@ -20,21 +20,21 @@ eventNames = [:triggerFiltration, :triggerVacuumTransport]
 
 synthesisFields = [:massFlowOut, :massHoldUp]
 synthesisConst = Dict([
-    (:massFlowOutMin, 2 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
-    (:massFlowOutMax, 33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
+    (:massFlowOutMin, 3.33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
+    (:massFlowOutMax, 8.33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
     (:startUpTime, 1),
-    (:shutdownTime, Int(ceil(10 / tD_minutes))),
+    (:shutdownTime, 2),
 ])
 
 # massFlowIntern - API containing material
 crystFields = [:massFlowIntern, :massFlowInternPolymer, :massHoldUp]
 crystConst = Dict([
     (:massFlowInternMin, 2.49*tD_minutes), # 0.3 ml/min -> 1,5 ml / n
-    (:massFlowInternMax, 3*tD_minutes), # 26.56*tD_minutes), # 26.56 ml/min -> 132 ml / n
+    (:massFlowInternMax, 2.5*tD_minutes*1.25), # 26.56*tD_minutes), # 26.56 ml/min -> 132 ml / n
     (:massFlowInternPolymerMin, 0.38*tD_minutes), # TODO not used at the moment
     (:massFlowInternPolymerMax, 44.29*tD_minutes), # TODO not used at the moment
     (:massFlowInternTarget, 2.5*tD_minutes), # 2,5 ml/min
-    (:startUpTime, Int(ceil(15 / tD_minutes))), # 15 min
+    (:startUpTime, Int(ceil(0 / tD_minutes))), # 15 min
     (:shutdownTime, Int(ceil(5 / tD_minutes))), # 5 min
 ])
 
@@ -65,8 +65,8 @@ vacuumTransportConst = Dict([
 
 dcLineFields = [:massHoldUpIn, :massFlowAPI, :massFlowPolymer, :massFlowIntern, :massHoldUp]
 dcLineConst = Dict([
-    (:startUpTime, Int(ceil(5 / tD_minutes))),
-    (:shutdownTime, Int(ceil(5 / tD_minutes))),
+    (:startUpTime, 0),
+    (:shutdownTime, 0),
     (:massFlowAPIMin, 0.6*tD_hours*1000), # 0.6 kg/h
     (:massFlowAPIMax, 1.4*tD_hours*1000), # 1.4 kg/h
     (:massFlowPolymerMin, 2.4*tD_hours*1000), # 2.4 kg/h
@@ -77,8 +77,8 @@ dcLineConst = Dict([
 
 tabletPressFields = [:massFlowIntern, :massHoldUp]
 tabletPressConst = Dict([
-    (:startUpTime, Int(ceil(5 / tD_minutes))),
-    (:shutdownTime, Int(ceil(10 / tD_minutes))),
+    (:startUpTime, 0),
+    (:shutdownTime, 0),
     (:massFlowInternMin, 3*tD_hours*1000), # 3 kg/h related to DC Line
     (:massFlowInternMax, 7*tD_hours*1000), # 7 kg/h related to DC Line
     (:targetMassHoldUp, 1.8*1000), # 1.8 kg Target to keep the hopper level constant --> related to dcLine[massHoldUp]
@@ -139,11 +139,11 @@ end)
 
 # synthesis - mass flows/hold ups
 @constraints(model, begin
-    [j=1:N], synthesis[:massHoldUp, j] == sum(synthesis[:massFlowOut, 1:j] .- cryst[:massFlowIntern, 1:j])     
+    [j=1:N], synthesis[:massHoldUp, j] == 599 + sum(synthesis[:massFlowOut, 1:j] .- cryst[:massFlowIntern, 1:j])     
 end)
 
 # synthesis - start/end conditions
-fix(synthesis[:massHoldUp, 1], 0)
+#fix(synthesis[:massHoldUp, 1], 0)
 
 # -------------------------------------------------------------------
 # Crystallization
@@ -171,7 +171,7 @@ end)
 
 # Crystallization - mass flows/hold ups - fixed ratio 1 to 9 api to solvent (1 massFloeIntern = API + 9 Anti-solvent = 10*API)
 @constraints(model, begin
-    [j=1:N], cryst[:massHoldUp, j] == 10*sum(cryst[:massFlowIntern, 1:j]) - sum(filtration[:massInFiltration, 1:j]) # + sum(cryst[:massFlowInternPolymer, 1:j])    
+    [j=1:N], cryst[:massHoldUp, j] == 1500 + 10*sum(cryst[:massFlowIntern, 1:j]) - sum(filtration[:massInFiltration, 1:j]) # + sum(cryst[:massFlowInternPolymer, 1:j])    
 end)
 
 
@@ -214,8 +214,8 @@ end)
 
 # HME - mass flows/hold ups - fixed ratio of polymer over API 
 @constraints(model, begin
-    [j=(filtrationConst[:filtTime]+1):N], hme[:massHoldUpIn, j] == sum(filtrationConst[:ratioGrammOverMilliLitre] .* filtration[:massInFiltration, 1:(j-filtrationConst[:filtTime])]) - sum(hme[:massFlowAPI, 1:j])
-    [j=1:N], hme[:massFlowPolymer, j] == 19*hme[:massFlowAPI, j] # Might change when the target/producing tablet changes
+    [j=(filtrationConst[:filtTime]+1):N], hme[:massHoldUpIn, j] == 5.56 + sum(filtrationConst[:ratioGrammOverMilliLitre] .* filtration[:massInFiltration, 1:(j-filtrationConst[:filtTime])]) - sum(hme[:massFlowAPI, 1:j])
+    [j=1:N], hme[:massFlowPolymer, j] == 19*hme[:massFlowAPI, j] # API+MOISTURE+WATER (30% API) + 19:1 Poly:API Might change when the target/producing tablet changes
     [j=1:N], hme[:massFlowIntern, j] == hme[:massFlowAPI, j] + hme[:massFlowPolymer, j]
     [j=1:N], hme[:massHoldUp, j] == sum(hme[:massFlowIntern, 1:j] .- vacuum[:massInTransport, 1:j])
 end)
@@ -294,20 +294,22 @@ end)
 # Inital vaulues and additional constraints
 for taskName in taskNames 
     #fix(tasksInOperation[taskName, 1], 0)
-    fix(tasksSwitchedOn[taskName, 1], 0)
+    #fix(tasksSwitchedOn[taskName, 1], 0)
     fix(tasksInOperation[taskName, end], 0)
 end
 
 for eventName in eventNames
     fix(events[eventName, end], 0)
 end
+
+
 # -------------------------------------------------------------------
 #
 
 @objective(model, Min,
     + 1e-2*synthesis[:massHoldUp, N]
     + 1e-2*cryst[:massHoldUp, N]
-    + 1e-2*hme[:massHoldUpIn, N]
+    + 1e2*hme[:massHoldUpIn, N]
     + 1e-2*hme[:massHoldUp, N]
     + 1e-2*dcLine[:massHoldUpIn, N]
     + 1e-2*dcLine[:massHoldUp, N]
@@ -315,8 +317,8 @@ end
     + 1e1*sum(tasksSwitchedOn[:, :]) / N
     + 1e-2*sum(events[:triggerFiltration, :]) / N
     + 1e-2*sum(events[:triggerVacuumTransport, :]) / N
-    + 1e-1*sum((taskInOperationChanged[:, :]).^2) / N
-    #+ 1e5*sum((taskInOperationChanged[:dcLine, :]).^2)
+    + 1e3*sum((taskInOperationChanged[:, :]).^2) / N
+    + 1e5*sum((taskInOperationChanged[:hme, :]).^2)
     #- 1e2*tabletPress[:massHoldUp, N]
     #+ 1*(synthesis[:massHoldUp, N])^2
     #+ 1*(cryst[:massHoldUp, N])^2
@@ -341,7 +343,7 @@ solution_summary(model)
 # -------------------------------------------------------------------
 # Plots
 timeInstanceToHours = tD_hours;
-
+timeOffsetInHours = 3;
 
 plotOperationSynthesis = addPlot(1:N, [
     wrapPlotDetails(tasksSwitchedOn[:synthesis, :], "Syn.: switch"),
@@ -459,8 +461,8 @@ CSV.write("output.csv", Table(
     dcLineMassFlowPolymer = value.(dcLine[:massFlowPolymer, :])./tD_hours/1000,
     dcLineMassFlowIntern = value.(dcLine[:massFlowIntern, :])./tD_hours/1000,
     dcLineMassHoldUp = value.(dcLine[:massHoldUp, :]),
-    tabletPressMassFlowIntern = value.(tabletPress[:massFlowIntern, :]),
+    tabletPressMassFlowIntern = value.(tabletPress[:massFlowIntern, :])./tD_hours/1000,
+    tabletPressTabletMassFlowIntern = value.(tabletPress[:massFlowIntern, :])./tD_hours/1000/0.0002, # kg/h over average mass of tablet
+    tabletPressBlenderSpeed = value.(tabletPress[:massFlowIntern, :])./tD_hours/1000/0.0002*50/22000, # % ref 50% for 22000 tablets / h
     tabletPressMassHoldUp = value.(tabletPress[:massHoldUp, :]),
 ))
-
-plot(plotOperationSynthesis, plotOperationCryst, plotEvents, plotOperationHME, plotOperationDCLine, plotOperationTabletPress, layout=(6, 1), size=(800, 1200))
