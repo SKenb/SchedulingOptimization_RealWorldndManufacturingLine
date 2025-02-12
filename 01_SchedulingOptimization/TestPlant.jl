@@ -6,14 +6,14 @@ include("../00_Common/common.jl")
 
 # -------------------------------------------------------------------
 # 
-tD_minutes = 5;  # in min / time instance
+tD_minutes = 5;  # in min/time instance
 tD_seconds = 60*tD_minutes; # in s / time instance
 tD_hours = tD_minutes / 60;  # in h / time instance
-N = Int(6*60 / tD_minutes); # 6 hours = 6*60 min / min / time instace = number of time instances
+N = Int(6*60 / tD_minutes); # 6 hours = 6*60 min / min / time instance = number of time instances
 
 
 # -------------------------------------------------------------------
-# If not stated otherwise massHoldUp reffers zo massHoldUpOut
+# If not stated otherwise massHoldUp reffers to massHoldUpOut
 #
 taskNames = [:synthesis, :cryst, :filtration, :hme, :vacuum, :dcLine, :tabletPress]
 taskNamesMultiProduct = [:hme, :dcLine, :tabletPress]
@@ -23,8 +23,8 @@ eventNames = [:triggerFiltration, :triggerVacuumTransport]
 
 synthesisFields = [:massFlowOut, :massHoldUp]
 synthesisConst = Dict([
-    (:massFlowOutMin, 2 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
-    (:massFlowOutMax, 33 * tD_seconds), #l / s <-- NOT sure about that maybe ml/s
+    (:massFlowOutMin, 2 * tD_seconds), #l / s 
+    (:massFlowOutMax, 33 * tD_seconds), #l / s
     (:startUpTime, 1),
     (:shutdownTime, Int(ceil(10 / tD_minutes))),
 ])
